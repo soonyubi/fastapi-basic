@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+dataclasses
+pymysql
+sqlalchemy
+pymysql
+pyjwt
+bcrypt
