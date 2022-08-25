@@ -15,7 +15,7 @@ from app.models import SnsType, Token, UserToken, UserRegister
 
 
 
-router = APIRouter(prefix='/auth')
+router = APIRouter(prefix='/auth', tags=['Authentication'])
 
 @router.post("/register/{sns_type}", status_code=201, response_model=Token)
 async def register(sns_type: SnsType, reg_info: UserRegister, session: Session = Depends(db.session)):
@@ -38,6 +38,27 @@ async def register(sns_type: SnsType, reg_info: UserRegister, session: Session =
         return token
     return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 
+@router.post("/login/{sns_type}", status_code=200, response_model=Token)
+async def login(sns_type: SnsType, user_info: UserRegister):
+    
+    if sns_type == SnsType.email:
+        print(user_info.email)
+        is_exist = await is_email_exist(user_info.email)
+        if not user_info.email or not user_info.pw:
+            return JSONResponse(status_code=400, content=dict(msg="Email and PW must be provided'"))
+        if not is_exist:
+            return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER"))
+        user = Users.get(email=user_info.email)
+        is_verified = bcrypt.checkpw(user_info.pw.encode("utf-8"), user.pw) # user.pw 는 이미 bytes이므로 encode 할 필요가 없다.
+        #is_verified = bcrypt.checkpw(user_info.pw, user.pw)
+        if not is_verified:
+            return JSONResponse(status_code=400, content=dict(msg="NO_MATCH_USER"))
+        token = dict(
+            Authorization=f"Bearer {create_access_token(data=UserToken.from_orm(user).dict(exclude={'pw', 'marketing_agree'}),)}")
+        return token
+
+    
+    return JSONResponse(status_code=400, content=dict(msg="NOT_SUPPORTED"))
 
 async def is_email_exist(email: str):
     get_email = Users.get(email=email)

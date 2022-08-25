@@ -51,18 +51,16 @@ class BaseMixin:
         :param kwargs:
         :return:
         """
-        sess = next(db.session()) if not session else session
+        sess = next(db.session()) if not session else session # db session에서 또다른 세션을 받아와서 세션을 사용하고 난후 자동으로 반납을한다.
         query = sess.query(cls)
         for key, val in kwargs.items():
             col = getattr(cls, key)
             query = query.filter(col == val)
 
-        if query.count() > 1:
-            raise Exception("Only one row is supposed to be returned, but got more than one.")
-        result = query.first()
-        if not session:
-            sess.close()
-        return 
+        if query.count()>1:
+            raise Exception("Only one row is supposed to be returned, but got more than one")
+        else:
+            return query.first()
 
 class Users(Base, BaseMixin):
     __tablename__ = "users"

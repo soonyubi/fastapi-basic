@@ -43,7 +43,7 @@ class SQLAlchemy:
             self._session.close_all()
             self._engine.dispose()
             logging.info("DB disconnected")
-        Base.metadata.create_all(bind=self._engine)
+        #Base.metadata.create_all(bind=self._engine)
 
 
     def get_db(self):
