@@ -8,8 +8,13 @@ from app.common.config import conf
 from app.router import index,auth
 from app.database import schema
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
+from app.common.constant import EXCEPT_PATH_LIST, EXCEPT_PATH_REGEX
 
+from app.middleware.token_validator import AccessControl
+from app.middleware.trusted_hosts import TrustedHostMiddleware
 
 def create_app():
     c= conf()
@@ -22,10 +27,22 @@ def create_app():
     # redis intialize
 
     # middle ware
+    app.add_middleware(AccessControl, except_path_list=EXCEPT_PATH_LIST, except_path_regex=EXCEPT_PATH_REGEX)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=conf().ALLOW_SITE,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=conf().TRUSTED_HOSTS, except_path=["/health"])    
+
+
+
 
     # router
     app.include_router(index.router)
-    app.include_router(auth.router)
+    app.include_router(auth.router, tags=['Authentication'], prefix="/api")
     return app
 
 app = create_app()

@@ -15,7 +15,7 @@ from app.models import SnsType, Token, UserToken, UserRegister
 
 
 
-router = APIRouter(prefix='/auth', tags=['Authentication'])
+router = APIRouter(prefix="/auth")
 
 @router.post("/register/{sns_type}", status_code=201, response_model=Token)
 async def register(sns_type: SnsType, reg_info: UserRegister, session: Session = Depends(db.session)):

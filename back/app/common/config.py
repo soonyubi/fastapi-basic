@@ -24,10 +24,15 @@ class Config:
 class LocalConfig(Config):
     PROJ_RELOAD : bool = True
     DB_URL : str = "sqlite:///app/userlogin.db"
+    TRUSTED_HOSTS = ["*"]
+    ALLOW_SITE = ["*"]
+    
 # 운영서버
 @dataclass
 class ProdConfig(Config):
     PROJ_RELOAD : bool = False
+    TRUSTED_HOSTS = ["*"]
+    ALLOW_SITE = ["*"]
 
 def conf():
     """
