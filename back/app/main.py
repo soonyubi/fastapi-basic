@@ -1,11 +1,12 @@
 from dataclasses import asdict
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from fastapi.security import APIKeyHeader
 from typing import Optional
 import uvicorn
 
 from app.database.conn import db ,Base
 from app.common.config import conf
-from app.router import index,auth
+from app.router import index,auth,users
 from app.database import schema
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -15,6 +16,10 @@ from app.common.constant import EXCEPT_PATH_LIST, EXCEPT_PATH_REGEX
 
 from app.middleware.token_validator import AccessControl
 from app.middleware.trusted_hosts import TrustedHostMiddleware
+
+
+API_KEY_HEADER = APIKeyHeader(name='Authorization',auto_error=False)
+
 
 def create_app():
     c= conf()
@@ -43,6 +48,8 @@ def create_app():
     # router
     app.include_router(index.router)
     app.include_router(auth.router, tags=['Authentication'], prefix="/api")
+    app.include_router(users.router, tags=['Users'], prefix='/api', dependencies=[Depends(API_KEY_HEADER)])
+
     return app
 
 app = create_app()
