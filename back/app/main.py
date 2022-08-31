@@ -14,7 +14,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.common.constant import EXCEPT_PATH_LIST, EXCEPT_PATH_REGEX
 
-from app.middleware.token_validator import AccessControl
+from app.middleware.token_validator import access_control
 from app.middleware.trusted_hosts import TrustedHostMiddleware
 
 
@@ -32,7 +32,7 @@ def create_app():
     # redis intialize
 
     # middle ware
-    app.add_middleware(AccessControl, except_path_list=EXCEPT_PATH_LIST, except_path_regex=EXCEPT_PATH_REGEX)
+    app.add_middleware(middleware_class=BaseHTTPMiddleware, dispatch = access_control)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=conf().ALLOW_SITE,
