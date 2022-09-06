@@ -6,7 +6,7 @@ import uvicorn
 
 from app.database.conn import db ,Base
 from app.common.config import conf
-from app.router import index,auth,users
+from app.router import index,auth,users,services
 from app.database import schema
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -49,7 +49,7 @@ def create_app():
     app.include_router(index.router)
     app.include_router(auth.router, tags=['Authentication'], prefix="/api")
     app.include_router(users.router, tags=['Users'], prefix='/api', dependencies=[Depends(API_KEY_HEADER)])
-
+    app.include_router(services.router, tags=['Users'],prefix='/api')
     return app
 
 app = create_app()

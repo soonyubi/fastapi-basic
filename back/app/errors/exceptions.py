@@ -125,3 +125,43 @@ class SqlFailureEx(APIException):
             code=f"{StatusCode.HTTP_500}{'2'.zfill(4)}",
             ex=ex,
         )
+
+class APIQueryStringEx(APIException):
+    def __init__(self, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"쿼리 스트링은 key, timestamp 2개만 허용되며, 2개 모두 요청 시 제출되어야 합니다.",
+            detail="Query String Only Accept key and timestamp",
+            code=f"{StatusCode.HTTP_400}{'7'.zfill(4)}",
+            ex=ex,
+        )
+
+class NotFoundAccessKeyEx(APIException):
+    def __init__(self, api_key:str,  ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_404,
+            msg=f"API 키를 찾을 수 없습니다.",
+            detail=f"Not found such API Access Key : {api_key}",
+            code=f"{StatusCode.HTTP_404}{'10'.zfill(4)}",
+            ex=ex,
+        )
+
+class APIHeaderInvalidEx(APIException):
+    def __init__(self, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"헤더에 키 해싱된 Secret 이 없거나, 유효하지 않습니다.",
+            detail="Invalid HMAC secret in Header",
+            code=f"{StatusCode.HTTP_400}{'8'.zfill(4)}",
+            ex=ex,
+        )
+
+class APITimestampEx(APIException):
+    def __init__(self, ex: Exception = None):
+        super().__init__(
+            status_code=StatusCode.HTTP_400,
+            msg=f"쿼리스트링에 포함된 타임스탬프는 KST 이며, 현재 시간보다 작아야 하고, 현재시간 - 10초 보다는 커야 합니다.",
+            detail="timestamp in Query String must be KST, Timestamp must be less than now, and greater than now - 10.",
+            code=f"{StatusCode.HTTP_400}{'9'.zfill(4)}",
+            ex=ex,
+        )
