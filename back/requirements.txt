@@ -6,3 +6,4 @@ sqlalchemy
 pymysql
 pyjwt
 bcrypt
+requests

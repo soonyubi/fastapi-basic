@@ -4,6 +4,7 @@
 
 from dataclasses import dataclass, asdict
 from os import path, environ
+from pickle import FALSE
 
 base_dir = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 
@@ -15,9 +16,9 @@ class Config:
         basic configuration
     """
     BASE_DIR = base_dir
-
     DB_POOL_RECYCLE: int = 900
     DB_ECHO: bool = True
+    
 
 # 로컬서버
 @dataclass
@@ -26,14 +27,15 @@ class LocalConfig(Config):
     DB_URL : str = "sqlite:///app/userlogin.db"
     TRUSTED_HOSTS = ["*"]
     ALLOW_SITE = ["*"]
-    
+    DEBUG = True
 # 운영서버
 @dataclass
 class ProdConfig(Config):
     PROJ_RELOAD : bool = False
     TRUSTED_HOSTS = ["*"]
     ALLOW_SITE = ["*"]
-
+    DEBUG = False
+    
 def conf():
     """
     환경 불러오기

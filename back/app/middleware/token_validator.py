@@ -47,36 +47,40 @@ async def access_control(request: Request, call_next):
             if url.startswith("/api/services"):
                 qs = str(request.query_params) # ?abc=123?xyz=123
                 qs_list = qs.split("&") # [abc=123, xyz=123]
-                try :
-                    qs_dict = {qs_split.split("=")[0] : qs_split.split("=")[1] for qs_split in qs_list}
-                except Exception:
-                    raise ex.APIQueryStringEx()
-
-                qs_keys = qs_dict.keys()
-                if "key" not in qs_keys or "timestamp" not in qs_keys:
-                    raise ex.APIQueryStringEx()
-                if "secret" not in headers.key():
-                    raise ex.APIHeaderInvalidEx()
-
-                
                 session = next(db.session()) # 이렇게 로직 중간에 세션을 호출하면, 성능상에 문제가 있다. -> radis로 바꿔서 사용해야됌
-                api_key = ApiKeys.get(session=session,access_key = qs_dict["key"])
-                if not api_key:
-                    raise ex.NotFoundAccessKeyEx(api_key=qs_dict["key"])
-                mac = hmac.new(bytes(api_key.secret_key, encoding="utf-8"),bytes(qs,encoding="utf-8"),digestmod='sha256')
-                d = mac.digest()
-                validating_secret = str(base64.b64encode(d).decode('utf-8')) 
+                
+                if not config.conf().DEBUG:
+                    try :
+                        qs_dict = {qs_split.split("=")[0] : qs_split.split("=")[1] for qs_split in qs_list}
+                    except Exception:
+                        raise ex.APIQueryStringEx()
 
-                if headers['secret'] != validating_secret:
-                    raise ex.APIHeaderInvalidEx()
-                
-                now_timestamp = int(D.datetime(diff=9).timestamp()) # 1514133.131231
-                if now_timestamp - 10 > int(qs_dict['timestamp']) or now_timestamp < int(qs_dict['timestamp']):
-                    # now stamp 기준으로 10초내 쿼리만 유효, 미래의 쿼리는 유효하지 않음
-                    raise ex.APITimestampEx()
-                
-                user_info = to_dict(api_key.users) # api key에 해당하는 유저가 relation으로 연결된 상태임
-                request.state.user = UserToken(**user_info)
+                    qs_keys = qs_dict.keys()
+                    if "key" not in qs_keys or "timestamp" not in qs_keys:
+                        raise ex.APIQueryStringEx()
+                    if "secret" not in headers.key():
+                        raise ex.APIHeaderInvalidEx()
+
+                    
+                    
+                    api_key = ApiKeys.get(session=session,access_key = qs_dict["key"])
+                    if not api_key:
+                        raise ex.NotFoundAccessKeyEx(api_key=qs_dict["key"])
+                    mac = hmac.new(bytes(api_key.secret_key, encoding="utf-8"),bytes(qs,encoding="utf-8"),digestmod='sha256')
+                    d = mac.digest()
+                    validating_secret = str(base64.b64encode(d).decode('utf-8')) 
+
+                    if headers['secret'] != validating_secret:
+                        raise ex.APIHeaderInvalidEx()
+                    
+                    now_timestamp = int(D.datetime(diff=9).timestamp()) # 1514133.131231
+                    if now_timestamp - 10 > int(qs_dict['timestamp']) or now_timestamp < int(qs_dict['timestamp']):
+                        # now stamp 기준으로 10초내 쿼리만 유효, 미래의 쿼리는 유효하지 않음
+                        raise ex.APITimestampEx()
+                    
+                    user_info = to_dict(api_key.users) # api key에 해당하는 유저가 relation으로 연결된 상태임
+                    request.state.user = UserToken(**user_info)
+                    
                 session.close()
                 response = await call_next(request)
                 return response
